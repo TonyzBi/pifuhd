@@ -62,7 +62,7 @@ def set_renderer():
     cameras = OpenGLOrthographicCameras(device=device, R=R, T=T)
 
     raster_settings = RasterizationSettings(
-        image_size=512, 
+        image_size=1024, 
         blur_radius=0.0, 
         faces_per_pixel=1, 
         bin_size = None, 
@@ -134,6 +134,39 @@ def generate_video_from_obj(obj_path, image_path, video_path, renderer):
         out.write(image.astype('uint8'))
     out.release()
 
+def get_segmentation(obj_path, image_path, renderer):
+    
+    input_image = cv2.imread(image_path)
+    input_image = input_image[:,:input_image.shape[1]//3]
+    input_image = cv2.resize(input_image, (1024, 1024))
+
+    # Setup
+    device = torch.device("cuda:0")
+    torch.cuda.set_device(device)
+
+    # Load obj file
+    verts_rgb_colors = get_verts_rgb_colors(obj_path)
+    verts_rgb_colors = torch.from_numpy(verts_rgb_colors).to(device)
+    textures = TexturesVertex(verts_features=verts_rgb_colors)
+    # wo_textures = TexturesVertex(verts_features=torch.ones_like(verts_rgb_colors)*0.75)
+
+    # Load obj
+    mesh = load_objs_as_meshes([obj_path], device=device)
+
+    # Set mesh
+    vers = mesh._verts_list
+    faces = mesh._faces_list
+    mesh_w_tex = Meshes(vers, faces, textures)
+    # mesh_wo_tex = Meshes(vers, faces, wo_textures)
+
+    R, T = look_at_view_transform(1.8, 0, 0, device=device)
+    images_w_tex = renderer(mesh_w_tex, R=R, T=T)
+    images_w_tex = np.clip(images_w_tex[0, ..., :3].cpu().numpy(), 0.0, 1.0)[:, :, ::-1] * 255
+    images_wo_tex = renderer(mesh_wo_tex, R=R, T=T)
+    images_wo_tex = np.clip(images_wo_tex[0, ..., :3].cpu().numpy(), 0.0, 1.0)[:, :, ::-1] * 255
+    
+    return input_image, images_w_tex, images_wo_tex
+    
 def video(path):
     mp4 = open(path,'rb').read()
     data_url = "data:video/mp4;base64," + b64encode(mp4).decode()
