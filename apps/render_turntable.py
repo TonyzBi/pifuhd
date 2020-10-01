@@ -109,21 +109,22 @@ for i, obj_path in enumerate(obj_files):
     else:
         renderer.set_mesh(vertices, faces, 0.5*normals+0.5, faces) 
         
-    cnt = 0
-    for j in range(0, 361, 2):
-        cam.center = np.array([0, 0, 0])
-        cam.eye = np.array([2.0*math.sin(math.radians(j)), 0, 2.0*math.cos(math.radians(j))]) + cam.center
+    #cnt = 0
+    #for j in range(0, 361, 2):
+    j = 0
+    cam.center = np.array([0, 0, 0])
+    cam.eye = np.array([2.0*math.sin(math.radians(j)), 0, 2.0*math.cos(math.radians(j))]) + cam.center
 
-        renderer.set_camera(cam)
-        renderer.display()
-        
-        img = renderer.get_color(0)
-        img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGRA)
+    renderer.set_camera(cam)
+    renderer.display()
 
-        cv2.imwrite(os.path.join(obj_root, 'rot_%04d.png' % cnt), 255*img)
-        cnt += 1
+    img = renderer.get_color(0)
+    img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGRA)
 
-    cmd = 'ffmpeg -framerate 30 -i ' + obj_root + '/rot_%04d.png -vcodec libx264 -y -pix_fmt yuv420p -refs 16 ' + os.path.join(obj_root, file_name + '.mp4')
-    os.system(cmd)
-    cmd = 'rm %s/rot_*.png' % obj_root
-    os.system(cmd)
+    cv2.imwrite(os.path.join(obj_root, 'res_%04d.png' % cnt), 255*img)
+    cnt += 1
+
+    #cmd = 'ffmpeg -framerate 30 -i ' + obj_root + '/rot_%04d.png -vcodec libx264 -y -pix_fmt yuv420p -refs 16 ' + os.path.join(obj_root, file_name + '.mp4')
+    #os.system(cmd)
+    #cmd = 'rm %s/rot_*.png' % obj_root
+    #os.system(cmd)
