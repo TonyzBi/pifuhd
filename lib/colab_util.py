@@ -157,7 +157,7 @@ def get_segmentation(obj_path, image_path, renderer):
     vers = mesh._verts_list
     faces = mesh._faces_list
     mesh_w_tex = Meshes(vers, faces, textures)
-    # mesh_wo_tex = Meshes(vers, faces, wo_textures)
+    mesh_wo_tex = Meshes(vers, faces, wo_textures)
 
     R, T = look_at_view_transform(1.8, 0, 0, device=device)
     images_w_tex = renderer(mesh_w_tex, R=R, T=T)
